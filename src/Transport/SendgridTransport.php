@@ -65,6 +65,11 @@ class SendgridTransport extends Transport
             $data['attachments'] = $attachments;
         }
 
+        $headers = $this->getXHeaders($message);
+        if (count($headers) > 0) {
+            $data['headers'] = $headers;
+        }
+
         $data = $this->setParameters($message, $data);
 
         $payload = [
@@ -220,6 +225,25 @@ class SendgridTransport extends Transport
             ];
         }
         return $this->attachments = $attachments;
+    }
+
+    /**
+     * @param Swift_Mime_SimpleMessage $message
+     * @return array
+     */
+    private function getXHeaders(Swift_Mime_SimpleMessage $message)
+    {
+        $headers = [];
+        $allHeaders = $message->getHeaders()->getAll();
+
+        /** @var \Swift_Mime_Headers_AbstractHeader $header */
+        foreach ($allHeaders as $header) {
+            if (strpos($header->getFieldName(), 'X-') === 0) {
+                $headers[$header->getFieldName()] = $header->getFieldBody();
+            }
+        }
+
+        return $headers;
     }
 
     /**
